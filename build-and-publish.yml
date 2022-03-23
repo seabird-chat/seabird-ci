@@ -1,0 +1,126 @@
+# This is a generic pipeline used for all repos that publish and deploy images.
+# The name of the repo needs to be provided as a variable.
+
+resource_types:
+- name: ansible-playbook
+  type: docker-image
+  source:
+    repository: troykinsella/concourse-ansible-playbook-resource
+    tag: latest
+
+resources:
+- name: seabird-infra
+  type: git
+  icon: github
+  source:
+    uri: ssh://git@github.com/seabird-chat/seabird-infra.git
+    branch: main
+    private_key: ((github-private-key))
+
+- name: site-playbook
+  type: ansible-playbook
+  source:
+    ssh_private_key: ((ansible-ssh-private-key))
+    vault_password: ((ansible-vault-password))
+
+- name: ((repo-name))-main
+  type: git
+  icon: github
+  source:
+    uri: https://github.com/seabird-chat/((repo-name)).git
+    branch: main
+
+- name: ((repo-name))-dev
+  type: git
+  icon: github
+  source:
+    uri: https://github.com/seabird-chat/((repo-name)).git
+    branch: develop
+
+- name: ((repo-name))-image-latest
+  type: registry-image
+  icon: docker
+  source:
+    repository: seabirdchat/((repo-name))
+    tag: latest
+    username: ((registry-username))
+    password: ((registry-password))
+
+- name: ((repo-name))-image-next
+  type: registry-image
+  icon: docker
+  source:
+    repository: seabirdchat/((repo-name))
+    tag: next
+    username: ((registry-username))
+    password: ((registry-password))
+
+build-image-task: &build-image-task
+  task: build-image
+  privileged: true
+  config:
+    platform: linux
+    image_resource:
+      type: registry-image
+      source:
+        repository: concourse/oci-build-task
+    inputs:
+    - name: ((repo-name))
+    outputs:
+    - name: image
+    params:
+      CONTEXT: ((repo-name))
+    run:
+      path: build
+
+deploy-params: &deploy-params
+  path: seabird-infra
+  inventory: ./hosts
+  tags:
+  - ((repo-name))
+  vars:
+    update_seabird: 'true'
+
+jobs:
+- name: build-and-push-latest
+  plan:
+  - get: ((repo-name))
+    resource: ((repo-name))-main
+    trigger: true
+  - <<: *build-image-task
+  - put: ((repo-name))-image-latest
+    params:
+      image: image/image.tar
+
+- name: build-and-push-next
+  plan:
+  - get: ((repo-name))
+    resource: ((repo-name))-dev
+    trigger: true
+  - <<: *build-image-task
+  - put: ((repo-name))-image-next
+    params:
+      image: image/image.tar
+
+- name: deploy-beta
+  plan:
+  - get: ((repo-name))-image-next
+    trigger: true
+    params:
+      skip_download: true
+  - get: seabird-infra
+  - put: site-playbook
+    params:
+      <<: *deploy-params
+      limit: beta
+
+- name: deploy-prod
+  plan:
+  - get: ((repo-name))-image-latest
+    params:
+      skip_download: true
+  - get: seabird-infra
+  - put: site-playbook
+    params:
+      <<: *deploy-params
+      limit: prod
