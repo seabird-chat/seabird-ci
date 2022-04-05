@@ -9,20 +9,6 @@ resource_types:
     tag: latest
 
 resources:
-- name: seabird-infra
-  type: git
-  icon: github
-  source:
-    uri: ssh://git@github.com/seabird-chat/seabird-infra.git
-    branch: main
-    private_key: ((github-private-key))
-
-- name: site-playbook
-  type: ansible-playbook
-  source:
-    ssh_private_key: ((ansible-ssh-private-key))
-    vault_password: ((ansible-vault-password))
-
 - name: ((repo-name))-main
   type: git
   icon: github
@@ -36,6 +22,21 @@ resources:
   source:
     uri: https://github.com/seabird-chat/((repo-name)).git
     branch: develop
+
+- name: seabird-infra-repo
+  type: git
+  icon: github
+  source:
+    uri: ssh://git@github.com/seabird-chat/seabird-infra.git
+    branch: main
+    private_key: ((github-private-key))
+
+- name: site-playbook
+  type: ansible-playbook
+  icon: ansible
+  source:
+    ssh_private_key: ((ansible-ssh-private-key))
+    vault_password: ((ansible-vault-password))
 
 - name: ((repo-name))-image-latest
   type: registry-image
@@ -82,17 +83,8 @@ deploy-params: &deploy-params
     update_seabird: 'true'
 
 jobs:
-- name: build-and-push-latest
-  plan:
-  - get: ((repo-name))
-    resource: ((repo-name))-main
-    trigger: true
-  - <<: *build-image-task
-  - put: ((repo-name))-image-latest
-    params:
-      image: image/image.tar
-
-- name: build-and-push-next
+# Beta jobs
+- name: build-and-push-beta
   plan:
   - get: ((repo-name))
     resource: ((repo-name))-dev
@@ -109,10 +101,22 @@ jobs:
     params:
       skip_download: true
   - get: seabird-infra
+    resource: seabird-infra-repo
   - put: site-playbook
     params:
       <<: *deploy-params
       limit: beta
+
+# Prod jobs
+- name: build-and-push-prod
+  plan:
+  - get: ((repo-name))
+    resource: ((repo-name))-main
+    trigger: true
+  - <<: *build-image-task
+  - put: ((repo-name))-image-latest
+    params:
+      image: image/image.tar
 
 - name: deploy-prod
   plan:
@@ -120,6 +124,7 @@ jobs:
     params:
       skip_download: true
   - get: seabird-infra
+    resource: seabird-infra-repo
   - put: site-playbook
     params:
       <<: *deploy-params

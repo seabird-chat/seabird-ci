@@ -8,6 +8,3 @@ ci-%:
 
 ci: ci-stock-plugin
 publish: publish-core publish-irc-backend publish-discord-backend publish-plugin-bundle publish-adventofcode-plugin publish-stock-plugin publish-url-plugin publish-github-plugin publish-webhook-receiver
-
-team:
-	fly -t seabird set-team -n seabird -c ./concourse_team.yml
