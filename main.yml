@@ -29,14 +29,60 @@ jobs:
     trigger: true
     passed: [set-self]
   - in_parallel:
+    # Core
     - set_pipeline: seabird-core-publish
       file: ci/build-and-publish.yml
       vars:
         <<: *common-vars
         repo-name: seabird-core
 
+    # Backends
+    - set_pipeline: seabird-discord-backend-publish
+      file: ci/build-and-publish.yml
+      vars:
+        <<: *common-vars
+        repo-name: seabird-discord-backend
+
     - set_pipeline: seabird-irc-backend-publish
       file: ci/build-and-publish.yml
       vars:
         <<: *common-vars
         repo-name: seabird-irc-backend
+
+    # Plugin Bundle
+    - set_pipeline: seabird-plugin-bundle-publish
+      file: ci/build-and-publish.yml
+      vars:
+        <<: *common-vars
+        repo-name: seabird-plugin-bundle
+
+    # Plugins
+    - set_pipeline: seabird-adventofcode-plugin-publish
+      file: ci/build-and-publish.yml
+      vars:
+        <<: *common-vars
+        repo-name: seabird-adventofcode-plugin
+
+    - set_pipeline: seabird-github-plugin-publish
+      file: ci/build-and-publish.yml
+      vars:
+        <<: *common-vars
+        repo-name: seabird-github-plugin
+
+    - set_pipeline: seabird-stock-plugin-publish
+      file: ci/build-and-publish.yml
+      vars:
+        <<: *common-vars
+        repo-name: seabird-stock-plugin
+
+    - set_pipeline: seabird-url-plugin-publish
+      file: ci/build-and-publish.yml
+      vars:
+        <<: *common-vars
+        repo-name: seabird-url-plugin
+
+    - set_pipeline: seabird-webhook-receiver-publish
+      file: ci/build-and-publish.yml
+      vars:
+        <<: *common-vars
+        repo-name: seabird-webhook-receiver
