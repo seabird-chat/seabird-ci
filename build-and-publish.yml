@@ -15,13 +15,15 @@ resources:
   source:
     uri: ssh://git@github.com/seabird-chat/((repo-name)).git
     branch: main
+    private_key: ((github-ssh-key))
 
 - name: ((repo-name))-dev
   type: git
   icon: github
   source:
-    uri: https://github.com/seabird-chat/((repo-name)).git
+    uri: ssh://git@github.com/seabird-chat/((repo-name)).git
     branch: develop
+    private_key: ((github-ssh-key))
 
 - name: seabird-infra-repo
   type: git
