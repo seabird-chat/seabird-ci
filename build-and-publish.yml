@@ -29,13 +29,13 @@ resources:
   source:
     uri: ssh://git@github.com/seabird-chat/seabird-infra.git
     branch: main
-    private_key: ((github-private-key))
+    private_key: ((github-ssh-key))
 
 - name: site-playbook
   type: ansible-playbook
   icon: ansible
   source:
-    ssh_private_key: ((ansible-ssh-private-key))
+    ssh_private_key: ((ansible-ssh-key))
     vault_password: ((ansible-vault-password))
 
 - name: ((repo-name))-image-latest

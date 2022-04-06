@@ -1,0 +1,39 @@
+resources:
+- name: ci
+  type: git
+  icon: github
+  source:
+    uri: git@github.com:seabird-chat/seabird-ci.git
+    private_key: ((github-ssh-key))
+
+# Common variables shared between pipelines
+common-vars: &common-vars
+  github-ssh-key: ((github-ssh-key))
+  ansible-ssh-key: ((ansible-ssh-key))
+  registry-username: ((registry-username))
+  registry-password: ((registry-password))
+  ansible-vault-password: ((ansible-vault-password))
+
+jobs:
+# update this pipeline before updating child pipelines
+- name: set-self
+  plan:
+  - get: ci
+    trigger: true
+  - set_pipeline: self
+    file: ci/main.yml
+
+- name: update publish pipelines
+  plan:
+  - in_parallel:
+    - set_pipeline: seabird-core-publish
+      file: ci/build-and-publish.yml
+      vars:
+        <<: *common-vars
+        repo-name: seabird-core
+
+    - set_pipeline: seabird-irc-nackend
+      file: ci/build-and-publish.yml
+      vars:
+        <<: *common-vars
+        repo-name: seabird-irc-backend
