@@ -69,6 +69,12 @@ jobs:
         <<: *common-vars
         repo-name: seabird-github-plugin
 
+    - set_pipeline: seabird-proxy-plugin-publish
+      file: ci/build-and-publish.yml
+      vars:
+        <<: *common-vars
+        repo-name: seabird-proxy-plugin
+
     - set_pipeline: seabird-stock-plugin-publish
       file: ci/build-and-publish.yml
       vars:
