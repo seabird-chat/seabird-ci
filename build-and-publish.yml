@@ -13,7 +13,7 @@ resources:
   type: git
   icon: github
   source:
-    uri: https://github.com/seabird-chat/((repo-name)).git
+    uri: ssh://git@github.com/seabird-chat/((repo-name)).git
     branch: main
 
 - name: ((repo-name))-dev
