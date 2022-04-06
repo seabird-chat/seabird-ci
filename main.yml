@@ -25,6 +25,9 @@ jobs:
 
 - name: update-publish-pipelines
   plan:
+  - get: ci
+    trigger: true
+    passed: [set-self]
   - in_parallel:
     - set_pipeline: seabird-core-publish
       file: ci/build-and-publish.yml
