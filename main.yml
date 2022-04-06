@@ -23,7 +23,7 @@ jobs:
   - set_pipeline: self
     file: ci/main.yml
 
-- name: update publish pipelines
+- name: update-publish-pipelines
   plan:
   - in_parallel:
     - set_pipeline: seabird-core-publish
@@ -32,7 +32,7 @@ jobs:
         <<: *common-vars
         repo-name: seabird-core
 
-    - set_pipeline: seabird-irc-nackend
+    - set_pipeline: seabird-irc-backend-publish
       file: ci/build-and-publish.yml
       vars:
         <<: *common-vars
